@@ -1,7 +1,9 @@
-s0ngbrew
+s0ngbrew-t3
 ========
 
-Hacking soundtracks from Taiko no Tatsujin: WiiU Version.
+Decrypt files for Taiko Wii U series.
+
+Re-encrypt only works for Taiko no Tatsujin: Atsumete Tomodachi Daisakusen.
 
 PoCx00: `musicinfo_db`
 ----------------------
@@ -22,7 +24,9 @@ and wanted to implement a compressor for practicing.
 
 ### How
 
-WIP
+Decode: `python3 cli.py --decode file.drp file.xml`
+
+Encode: `python3 cli.py file.xml file.drp`
 
 License
 -------
