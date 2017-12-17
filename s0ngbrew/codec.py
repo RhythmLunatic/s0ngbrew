@@ -36,8 +36,8 @@ class Codec(object):
         """
         rxml_data = f.read()
         bxml_data = zlib.compress(rxml_data)
-        bxmls, checksum = len(bxml_data) + 4, len(rxml_data) # 4 for rxmls
-        unknown_margin = (0x20000001, 0x0290, 0x00010001, 0)
+        bxmls, checksum = len(bxml_data) + 12, len(rxml_data) # +12 for Taiko 3, +4 for Taiko 1. Taiko 2 is untested
+        unknown_margin = (0x20000001, 0x0310, 0x00010001, 0)
         quadup = lambda x: (x, x, x, x)
         align = lambda x: x * b'\x00'
 
@@ -48,11 +48,17 @@ class Codec(object):
             of.seek(0x60)
             # Notice: the original musicInfo.drp stores the filename
             # `musicinfo_db`, which might be game-specific
-            of.write(bytes(os.path.splitext(self.ifname)[0].encode('ascii')))
-            of.seek(0xa0)
+            if self.ofname == "musicInfo.drp":
+                of.write(bytes("musicinfo_db".encode('ascii')))
+            elif self.ofname == "katsu_theme.drp":
+                of.write(bytes("katsu_theme_db".encode('ascii')))
+            else:
+                print("Please name your output file correctly. It should be musicInfo.drp or katsu_theme.drp.")
+			
+            of.seek(0xa0) #Jump to A0 (Where the unknown string is written and the rest of it)
             of.write(pack('>9I',
-                *unknown_margin,
-                *quadup(bxmls),
+                *unknown_margin, #write unknown margin
+                *quadup(bxmls), #???
                 checksum))
             of.write(bxml_data)
 
