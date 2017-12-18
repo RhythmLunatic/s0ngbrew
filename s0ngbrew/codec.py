@@ -34,10 +34,20 @@ class Codec(object):
         """\
         Encode DRP: Boilderplate header and XML compression
         """
+        if self.ofname == "musicInfo.drp":
+            type = 0
+        elif self.ofname == "katsu_theme.drp":
+            type = 1
+        else:
+            print("Please name your output file correctly. It should be musicInfo.drp or katsu_theme.drp.")
+            sys.exit()
+        
         rxml_data = f.read()
         bxml_data = zlib.compress(rxml_data)
-        bxmls, checksum = len(bxml_data) + 12, len(rxml_data) # +12 for Taiko 3, +4 for Taiko 1. Taiko 2 is untested
-        unknown_margin = (0x20000001, 0x0310, 0x00010001, 0)
+        bxmls = (len(bxml_data) + 12) if type == 0 else (len(bxml_data) + 8) # 12 for Taiko 3, 4 for Taiko 1.. And 8 for katsu_theme
+        checksum = len(rxml_data)
+		#Margin is different for katsu
+        unknown_margin = (0x20000001, 0x0310, 0x00010001, 0) if type == 0 else (0x20000001, 0x01B0, 0x00010001, 0)
         quadup = lambda x: (x, x, x, x)
         align = lambda x: x * b'\x00'
 
@@ -48,16 +58,14 @@ class Codec(object):
             of.seek(0x60)
             # Notice: the original musicInfo.drp stores the filename
             # `musicinfo_db`, which might be game-specific
-            if self.ofname == "musicInfo.drp":
+            if type == 0:
                 of.write(bytes("musicinfo_db".encode('ascii')))
-            elif self.ofname == "katsu_theme.drp":
+            if type == 1:
                 of.write(bytes("katsu_theme_db".encode('ascii')))
-            else:
-                print("Please name your output file correctly. It should be musicInfo.drp or katsu_theme.drp.")
 			
             of.seek(0xa0) #Jump to A0 (Where the unknown string is written and the rest of it)
             of.write(pack('>9I',
-                *unknown_margin, #write unknown margin
+                *unknown_margin,
                 *quadup(bxmls), #???
                 checksum))
             of.write(bxml_data)
@@ -73,7 +81,8 @@ class Codec(object):
         unknown, filecount = unpack('>HH', f.read(4))
 
         if filecount != 1:
-            raise FileCountError('Not a single XML compressed file')
+            #TODO...
+            raise FileCountError('Not a single XML compressed file, internal names will be used instead.')
 
         f.seek(0x60)
         fname = f.read(0x40).split(b'\x00')[0]
