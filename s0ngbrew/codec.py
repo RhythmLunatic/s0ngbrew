@@ -34,9 +34,9 @@ class Codec(object):
         """\
         Encode DRP: Boilderplate header and XML compression
         """
-        if self.ofname == "musicInfo.drp":
+        if os.path.basename(self.ofname) == "musicInfo.drp":
             type = 0
-        elif self.ofname == "katsu_theme.drp":
+        elif os.path.basename(self.ofname) == "katsu_theme.drp":
             type = 1
         else:
             print("Please name your output file correctly. It should be musicInfo.drp or katsu_theme.drp.")
